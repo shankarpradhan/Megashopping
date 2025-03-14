@@ -1,5 +1,13 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+you should add .env.local file in the root directory of your frontend where package.json exist
+add below variables in the .env.local file
+NEXT_PUBLIC_JWT_SECRET=your secret key
+# NEXT_PUBLIC_API_URL=https://megashop-backend-production.up.railway.app
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_RAZORPAY_KEY_ID=your key id
+NEXT_PUBLIC_RAZORPAY_KEY_SECRET=your key secret
+
 ## Getting Started
 
 First, run the development server:
