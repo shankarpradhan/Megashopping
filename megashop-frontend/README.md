@@ -12,6 +12,10 @@ NEXT_PUBLIC_RAZORPAY_KEY_ID=your key id
 #or
 NEXT_PUBLIC_RAZORPAY_KEY_SECRET=your key secret
 
+
+i hosted my frontend in firebase and backend in railway.com
+.It is working fine but you should modify firebase.json + .env.production + next.config.ts
+
 ## Getting Started
 
 First, run the development server:
