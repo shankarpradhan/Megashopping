@@ -46,7 +46,6 @@ export const loginUser = async (req, res) => {
     try {
         console.log("Login Attempt:", { email, password });
 
-        // ✅ Explicitly select password in query
         const user = await User.findOne({ email }).select("+password");
 
         if (!user) {
@@ -56,13 +55,11 @@ export const loginUser = async (req, res) => {
 
         console.log("User Found:", user);
 
-        // ✅ Ensure password exists
         if (!user.password) {
             console.log("User password is missing in database!");
             return res.status(500).json({ message: "User password is missing" });
         }
 
-        // ✅ Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             console.log("Invalid credentials: Password mismatch");
@@ -79,11 +76,19 @@ export const loginUser = async (req, res) => {
 
         console.log("Generated Token:", token);
 
-        res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
+        // ✅ Set token as a cookie (important for CORS credentials)
+        res.cookie("token", token, {
+            httpOnly: true,  // Prevents XSS attacks
+            secure: process.env.NODE_ENV === "production", // Secure in production
+            sameSite: "lax", // Helps with cross-site security
+        });
+
+        // ✅ Send response
+        res.json({ message: "Login successful", user: { id: user._id, name: user.name, role: user.role } });
 
     } catch (error) {
-        console.error("Server Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        console.error("Login Error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -109,7 +114,7 @@ export const forgotPassword = async (req, res) => {
         user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // Token valid for 15 minutes
         await user.save();
 
-        const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
+        const resetLink = `https://megashop-8d076.web.app/auth/reset-password?token=${resetToken}`;
 
         await transporter.sendMail({
             from: process.env.EMAIL_USER,

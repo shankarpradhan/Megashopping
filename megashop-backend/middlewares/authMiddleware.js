@@ -36,21 +36,16 @@ export const verifyAdmin = (req, res, next) => {
 };
 
 export const verifyToken = (req, res, next) => {
-    try {
-        const token = req.header("Authorization")?.split(" ")[1]; // Extract token from header
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(403).json({ success: false, message: "Token missing" });
 
-        if (!token) {
-            return res.status(401).json({ error: "Access Denied. No token provided." });
-        }
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(401).json({ success: false, message: "Unauthorized" });
 
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        req.user = decoded; // Attach user info (including userId) to the request object
-        next();
-    } catch (error) {
-        res.status(403).json({ error: "Invalid or expired token." });
-    }
+    console.log("🔹 Decoded User:", user); // Debug this!
+    req.user = user;  // ✅ Ensure this is set
+    next();
+  });
 };
 
   

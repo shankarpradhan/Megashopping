@@ -1,8 +1,8 @@
 import express from "express";
-const router = express.Router();
 import Product from "../models/Product.js";
 import { authenticateUser, authorizeRoles } from "../middlewares/authMiddleware.js";
 
+const router = express.Router();
 
 // ✅ Get all products (Public - No authentication needed)
 router.get("/", async (req, res) => {

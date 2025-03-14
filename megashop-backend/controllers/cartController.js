@@ -60,10 +60,6 @@ export const addToCart = async (req, res) => {
     }
 };
 
-
-  
-  
-
 // 📌 Get Cart Items
 export const getCart = async (req, res) => {
   try {

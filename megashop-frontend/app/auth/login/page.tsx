@@ -20,6 +20,7 @@ export default function LoginPage() {
       login(data.role);  // Update context with the role after successful login
       router.push("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       setError("Login failed");
     }
   };

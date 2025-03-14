@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { getUserRole } from "@/app/auth/utils/auth";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 const AdminPage = () => {
     const router = useRouter();
@@ -15,8 +14,8 @@ const AdminPage = () => {
         } else {
             setIsAdmin(true);
         }
-    }, []);
-
+    }, [router]);
+    // previous without router///////////////////////////////////////////////////
     if (!isAdmin) return null; // Prevent rendering for non-admins
 
     return (

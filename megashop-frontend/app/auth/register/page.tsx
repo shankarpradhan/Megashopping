@@ -16,19 +16,25 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    setError("");
+    setError(""); // Reset error state before making a new request
 
-    const res = await fetch("http://localhost:5000/api/users/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-    const result = await res.json();
-    if (!res.ok) {
-      setError(result.message || "Registration failed");
-    } else {
-      router.push("/auth/login"); // Redirect to Login after registration
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.message || "Registration failed");
+      } else {
+        // Redirect to the login page located at /auth/login after successful registration
+        router.push("/auth/login"); 
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again later.");
     }
   };
 
@@ -67,12 +73,13 @@ export default function RegisterPage() {
           </div>
           <button
             type="submit"
-            className="w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
+            className="w-full py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
+          >
             Register
           </button>
         </form>
         <p className="text-center text-sm">
-          Already have an account? <a href="/login" className="text-blue-500 hover:underline">Login</a>
+          Already have an account? <a href="/auth/login" className="text-blue-500 hover:underline">Login</a>
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect,  useCallback, ReactNode } from "react";
 
 // Define Product Interface
 interface Product {
@@ -29,14 +29,56 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
     // ✅ Define fetchCart inside the component but don't call it directly
-    const fetchCart = async () => {
-        const token = localStorage.getItem("token");
+    // const fetchCart = async () => {
+    //     const token = localStorage.getItem("token");
 
+    //     if (!token) {
+    //         console.warn("No auth token found, skipping cart fetch.");
+    //         return;
+    //     }
+
+    //     try {
+    //         const res = await fetch(`${API_URL}/api/cart`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 Authorization: `Bearer ${token}`,
+    //             },
+    //         });
+
+    //         if (res.status === 403) {
+    //             console.error("Forbidden: Invalid or missing token.");
+    //             return;
+    //         }
+
+    //         const data = await res.json();
+
+    //         if (res.ok && data.success && data.cart?.products) {
+    //             setCart(data.cart.products);
+    //         } else {
+    //             setCart([]);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching cart:", error);
+    //         setCart([]);
+    //     }
+    // };
+
+    // // ✅ Call fetchCart ONLY inside useEffect
+    // useEffect(() => {
+    //     fetchCart();
+    // }, []);
+    
+
+    const fetchCart = useCallback(async () => {
+        const token = localStorage.getItem("token");
+    
         if (!token) {
             console.warn("No auth token found, skipping cart fetch.");
+            setCart([]); // Ensure cart state is reset
             return;
         }
-
+    
         try {
             const res = await fetch(`${API_URL}/api/cart`, {
                 method: "GET",
@@ -45,15 +87,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
-            if (res.status === 403) {
-                console.error("Forbidden: Invalid or missing token.");
-                return;
+    
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
             }
-
+    
             const data = await res.json();
-
-            if (res.ok && data.success && data.cart?.products) {
+    
+            if (data.success && data.cart?.products) {
                 setCart(data.cart.products);
             } else {
                 setCart([]);
@@ -62,12 +103,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             console.error("Error fetching cart:", error);
             setCart([]);
         }
-    };
-
-    // ✅ Call fetchCart ONLY inside useEffect
+    }, [setCart]);
+    
     useEffect(() => {
         fetchCart();
-    }, []);
+    }, [fetchCart]); // ✅ Now the dependency is included, fixing the warning
+
 
     // Add Product to Cart
     const addToCart = async (product: Product, quantity: number = 1) => {

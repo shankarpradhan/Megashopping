@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 interface Product {
@@ -20,15 +20,14 @@ export default function ProductsPage() {
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+
+
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   // Fetch products from backend
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/products`);
       const data = await res.json();
@@ -36,9 +35,15 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Error fetching products:", error);
     }
-  };
+  }, [API_URL]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Handle product save (add or edit)
+
+  
   const handleSave = async () => {
     const token = localStorage.getItem("token");
     setLoading(true);
@@ -62,15 +67,12 @@ export default function ProductsPage() {
           method: "POST",
           body: formData,
           headers: {
-            Authorization: `Bearer ${token}`,  // Ensure authorization if needed
+            Authorization: `Bearer ${token}`,
           },
         });
 
         const uploadData = await uploadRes.json();
-        if (!uploadData.success) {
-          console.error("Image upload failed:", uploadData);
-          throw new Error("Image upload failed");
-        }
+        if (!uploadData.success) throw new Error("Image upload failed");
         imageUrl = uploadData.imageUrl;
       }
 
@@ -83,7 +85,7 @@ export default function ProductsPage() {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Ensure authorization if needed
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: product.name,
@@ -93,14 +95,7 @@ export default function ProductsPage() {
       });
 
       const data = await res.json();
-      console.log("Response Data:", data);
-
-      if (!res.ok) {
-        console.error("Error response data:", data);
-        throw new Error(data.message || "Failed to save product");
-      }
-
-      console.log("Product saved successfully:", data);
+      if (!res.ok) throw new Error(data.message || "Failed to save product");
 
       setNewProduct({ name: "", price: 0, image: "" });
       setEditProduct(null);
@@ -114,6 +109,13 @@ export default function ProductsPage() {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setPreview(URL.createObjectURL(file)); // Generate preview URL
+    }
+  };
   // Handle Delete
   const handleDelete = async (id: string) => {
     const token = localStorage.getItem("token");
@@ -122,28 +124,22 @@ export default function ProductsPage() {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Ensure authorization if needed
+          Authorization: `Bearer ${token}`,
         }
       });
       
       const data = await res.json();
-  
-      // Check if the response is successful
-      if (!data.success) {
-        console.error("Failed to delete product:", data.message || "No message provided");
-        throw new Error("Failed to delete product");
-      }
-  
-      fetchProducts(); // Refresh the product list after deletion
+      if (!data.success) throw new Error("Failed to delete product");
+
+      fetchProducts();
     } catch (error) {
       console.error("Error while deleting the product:", error);
     }
   };
 
   return (
-    <div className="p-6 mx-auto  bg-gray-900">
-      
-      <h1 className="text-3xl font-extrabold text-center mb-6 text-gray-800">Manage Products</h1>
+    <div className="p-6 mx-auto bg-gray-900">
+      <h1 className="text-3xl font-extrabold text-center mb-6 text-white">Manage Products</h1>
 
       {/* Add Product Form */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
@@ -167,7 +163,7 @@ export default function ProductsPage() {
             type="file"
             accept="image/*"
             className="w-full border border-gray-300 p-2 rounded-md"
-            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            onChange={handleImageChange}
           />
           <button
             onClick={handleSave}
@@ -186,7 +182,7 @@ export default function ProductsPage() {
             {product.image && (
               <div className="relative w-full h-48 rounded-md overflow-hidden">
                 <Image
-                  src={`${API_URL}${product.image}`}
+                  src={product.image.startsWith("http") ? product.image : `${API_URL}${product.image}`}
                   alt={product.name}
                   layout="fill"
                   objectFit="cover"
@@ -234,29 +230,16 @@ export default function ProductsPage() {
               value={editProduct.price}
               onChange={(e) => setEditProduct({ ...editProduct, price: Number(e.target.value) })}
             />
-            <input
-              type="file"
-              accept="image/*"
-              className="w-full border p-2 rounded-md mb-3"
-              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            />
-            <div className="flex justify-between">
-              <button
-                onClick={handleSave}
-                className="bg-green-500 text-white px-4 py-2 rounded-md"
-              >
-                Update Product
-              </button>
-              <button
-                onClick={() => setEditProduct(null)}
-                className="bg-gray-400 text-white px-4 py-2 rounded-md"
-              >
-                Cancel
-              </button>
-            </div>
+            <button
+              onClick={handleSave}
+              className="bg-green-500 text-white px-4 py-2 rounded-md w-full"
+            >
+              Update Product
+            </button>
           </div>
         </div>
       )}
     </div>
   );
 }
+

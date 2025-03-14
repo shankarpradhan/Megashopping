@@ -1,7 +1,8 @@
 // AuthContext.tsx
 "use client";
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
-import { login as authLogin, logout as authLogout, getUserRole } from "@/app/auth/utils/auth";
+// import { login as authLogin, logout as authLogout, getUserRole } from "@/app/auth/utils/auth";
+import { logout as authLogout } from "@/app/auth/utils/auth";
 
 interface AuthContextType {
   isLoggedIn: boolean;

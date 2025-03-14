@@ -4,11 +4,14 @@ import dotenv from "dotenv";
 import connectDB from "./db.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
 import morgan from "morgan"; // ✅ Logs requests
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js"; // ✅ Custom error handling
 
 dotenv.config();
@@ -22,9 +25,10 @@ app.use(morgan("dev"));
 // ✅ Properly configured CORS
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000", // Uses env variable
-    methods: "POST,GET,PUT,DELETE",
-    credentials: true, // Allows cookies to be sent
+    origin: "http://localhost:3000", 
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials:true
   })
 );
 
@@ -38,6 +42,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/payment", paymentRoutes);
+
 // ✅ Error Handling Middleware
 app.use(notFound); // Handles 404
 app.use(errorHandler); // Handles all errors
